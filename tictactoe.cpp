@@ -1,30 +1,56 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+#include <cstring>
 #define max 10
 using namespace std;
 
 bool gameOver = false;
 
+class Player{
+    friend void highScore(Player[]);
+    private:
+        string name;
+        int score;
+    public:
+        void typeInName();
+        void displayName(){cout << name;};
+};
+
+void Player::typeInName(){
+    cout << "Enter your name: ";
+    getline(cin, name);
+}
+
+void highScore(Player p[]){
+    ifstream infile;
+    infile.open("tictactoe_highscore.dat");
+
+    for(int i = 0; i < 10; i++){
+        infile >> p[i].name;
+        infile >> p[i].score;
+    }
+}
+
 class TicTacToe{
     friend void operation(TicTacToe);
     private:
         int n; //size
-        int Board[max][max];
+        int Board[max+1][max+1];
     public:
         TicTacToe();
         void go(int &x, int &y);
         void typeInSize();
         void display();
-        void Player1();
-        void Player2();
+        void Player1(Player);
+        void Player2(Player);
         int check();
 };
 
 //Hàm tạo: reset bàn chơi
 TicTacToe::TicTacToe(){
-    for(int i = 0; i < max; i++){
-        for(int j = 0; j < max; j++){
+    for(int i = 1; i <= max; i++){
+        for(int j = 1; j <= max; j++){
             Board[i][j] = 0;
         }
     }
@@ -39,8 +65,8 @@ void TicTacToe::typeInSize(){
 
 //Hiển thị
 void TicTacToe::display(){
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
+    for(int i = 1; i <= n; i++){
+        for(int j = 1; j <= n; j++){
             cout << Board[i][j] << " ";
         }
         cout << endl;
@@ -51,21 +77,22 @@ void TicTacToe::display(){
 void TicTacToe::go(int &x, int &y){
     //Nhập dòng
     do{
-        cout << "Dong: ";
+        cout << "Line: ";
         cin >> x;
     }
-    while(x < 0 || x > n);
+    while(x < 1 || x > n);
     //Nhập cột
     do{
-        cout << "Cot: ";
+        cout << "Column: ";
         cin >> y;
     }
-    while(y < 0 || y > n);
+    while(y < 1 || y > n);
 }
 
-void TicTacToe::Player1(){
+void TicTacToe::Player1(Player p){
     int x, y;
-    cout << "Den luot Player1: " << endl; //Thông báo đến lượt chơi
+    p.displayName();
+    cout << "'s turn: " << endl; //Thông báo đến lượt chơi
     do{
         go(x, y); //Chọn nước đi
     }
@@ -84,9 +111,10 @@ void TicTacToe::Player1(){
     }
 }
 
-void TicTacToe::Player2(){
+void TicTacToe::Player2(Player p){
     int x, y;
-    cout << "Den luot Player2: " << endl; //Thông báo đến lượt chơi
+    p.displayName();
+    cout << "'s turn: " << endl; //Thông báo đến lượt chơi
     do{
         go(x, y); //Chọn nước đi
     }
@@ -113,9 +141,9 @@ int TicTacToe::check(){
     int track1, track2; //Biến track để theo dõi theo hàng, cột, đường chéo tương ứng cho mỗi người chơi
     
     //Check hàng ngang
-    for(int i = 0; i < n; i++){
+    for(int i = 1; i <= n; i++){
         track1 = 0, track2 = 0; //Reset 2 biến track cho mỗi lần xuống dòng
-        for(int j = 0; j < n; j++){
+        for(int j = 1; j <= n; j++){
             if(Board[i][j] == 1) track1++; //Nếu ô được đánh dấu bởi Player1 thì đếm
             else if(Board[i][j] == 2) track2++; //Nếu ô được đánh dấu bởi Player2 thì đếm
         }
@@ -136,9 +164,9 @@ int TicTacToe::check(){
     //Nếu chưa tìm thấy người thắng cuộc thì duyệt tiếp cột dọc
 
     //Check cột dọc
-    for(int i = 0; i < n; i++){
+    for(int i = 1; i <= n; i++){
         track1 = 0; track2 = 0;
-        for(int j = 0; j < n; j++){
+        for(int j = 1; j <= n; j++){
             if(Board[j][i] == 1) track1++;
             else if(Board[j][i] == 2) track2++;
         }
@@ -160,8 +188,8 @@ int TicTacToe::check(){
     
     //Check đường chéo chính
     track1 = 0; track2 = 0;
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
+    for(int i = 1; i <= n; i++){
+        for(int j = 1; j <= n; j++){
             
             if(i == j){
                 if(Board[i][j] == 1) track1++;
@@ -186,8 +214,8 @@ int TicTacToe::check(){
 
     //Check đường chéo phụ
     track1 = 0, track2 = 0;
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
+    for(int i = 1; i <= n; i++){
+        for(int j = 1; j <= n; j++){
             
             if(i+j == n-1){
                 if(Board[i][j] == 1) track1++;
@@ -213,7 +241,7 @@ int TicTacToe::check(){
     //Game sẽ tiếp tục
 }
 
-void operation(TicTacToe newGame){
+void operation(TicTacToe newGame, Player p1, Player p2){
     int winner = 0;
     //Reset file dữ liệu trước khi chơi
     {
@@ -223,7 +251,7 @@ void operation(TicTacToe newGame){
     }
     //Bắt đầu các lượt đi
     do{
-        newGame.Player1(); //Player1 đi
+        newGame.Player1(p1); //Player1 đi
         cout << endl;
         newGame.display(); //Hiển thị kết qua sau bước đi
         cout << endl;
@@ -231,7 +259,7 @@ void operation(TicTacToe newGame){
         winner = newGame.check(); //Nếu có người thắng cuộc thì sẽ trả về mã tương ứng, và set gameOver = true
         if(winner == 1) break; //Nếu Player1 thắng thì kết thúc game luôn
 
-        newGame.Player2(); //Player2 đi
+        newGame.Player2(p2); //Player2 đi
         cout << endl;
         newGame.display(); //Hiển thị kết qua sau bước đi
         cout << endl;
@@ -243,11 +271,15 @@ void operation(TicTacToe newGame){
     cout << "We've found a winner!" << endl << endl;
     switch(winner){
         case 1:{
-            cout << "Congratulations! Player1 won!" << endl;
+            cout << "Congratulations! ";
+            p1.displayName();
+            cout << " won!" << endl;
             break;
         }
         case 2:{
-            cout << "Congratulations! Player2 won!" << endl;
+            cout << "Congratulations! ";
+            p2.displayName();
+            cout << " won!" << endl;
             break;
         }
     }
@@ -256,6 +288,7 @@ void operation(TicTacToe newGame){
 main(){
     int choice = 0;
     TicTacToe newGame;
+    Player p1, p2;
     cout << "Welcome to TicTacToe - the might-be most retarded game ever created!" << endl;
     cout << "================" << endl;
     cout << "Are you guys here to play today?" << endl;
@@ -269,19 +302,27 @@ main(){
         exit(1);
     }
 
-    cout << "Let us begin the game!!" << endl;;
-    cout << "================" << endl;;
+    cout << "Let us begin the game!!" << endl;
+    cout << "================" << endl;
+
+    cin.ignore();
+    cout << "Player 1 - ";
+    p1.typeInName();
+    cout << "Player 2 - ";
+    p2.typeInName();
+    cout << endl;
 
     //Bắt đầu game
     while(choice == 1){
         //Chọn size của board để chơi
         cout << "How big is the board you want to play? (3-10)" << endl;
         newGame.typeInSize();
+        cout << endl;
 
         //In ra board rỗng khởi đầu
         newGame.display();
 
-        operation(newGame);
+        operation(newGame, p1, p2);
         //Game kết thúc
         cout << "Game over!" << endl << endl;
         cout << "Do you want to play again?" << endl;
